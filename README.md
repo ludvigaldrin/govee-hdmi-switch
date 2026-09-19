@@ -80,7 +80,9 @@ Every controlling route responds with the device state after the command:
 state within ~6 s. It has usually gone through anyway — re-read it with `/status`.
 
 Switching source powers the box on first if it is off, since it ignores source changes
-while powered down.
+while powered down. It then enables dreamView, so the strip is always syncing to the
+selected input rather than depending on whatever mode the box happened to resume in.
+`/on` does the same.
 
 ## Configuration
 
@@ -133,8 +135,9 @@ A few things worth knowing:
   device, and roughly 10,000 calls per day. A source switch costs 1–2 commands plus 1–4 state
   calls, so the limits are invisible in normal use — but avoid polling `/status` more than
   once every couple of seconds.
-- **`hdmiSource` can be read back**, unlike scenes and music mode, which Govee returns as empty
-  strings. That is why the server can report the real state instead of just what it tried to set.
+- **`hdmiSource` can be read back**, unlike scenes, music mode and `dreamViewToggle`, which
+  Govee returns as empty strings. That is why the server can report the real source but cannot
+  tell you whether sync is on — it asserts dreamView on every switch instead of reading it.
 - **There is no push.** The API is polling only; there is no way to subscribe to changes made
   in the Govee app or with the buttons on the box.
 

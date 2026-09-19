@@ -83,6 +83,18 @@ const control = (type, instance, value) =>
 const setPower = (on) => control('devices.capabilities.on_off', 'powerSwitch', on ? 1 : 0);
 const setSource = (n) => control('devices.capabilities.mode', 'hdmiSource', n);
 
+// The box may come back from standby with sync disabled, and the API reports
+// dreamViewToggle as an empty string, so its state cannot be read back. Setting it
+// is idempotent, so we just always assert it rather than trying to detect it.
+// Devices without the capability simply reject it, which is not worth failing over.
+async function enableDreamView() {
+  try {
+    await control('devices.capabilities.toggle', 'dreamViewToggle', 1);
+  } catch (err) {
+    console.warn('dreamView could not be enabled:', err.message);
+  }
+}
+
 async function readState() {
   const { payload } = await govee('device/state', { sku: SKU, device: DEVICE });
   const caps = Object.fromEntries(payload.capabilities.map((c) => [c.instance, c.state.value]));
@@ -120,6 +132,7 @@ async function selectSource(name) {
     await sleep(1500);
   }
   await setSource(hdmi);
+  await enableDreamView();
   return confirm((s) => s.power === 'on' && s.hdmi === hdmi);
 }
 
@@ -130,6 +143,8 @@ async function turnOff() {
 
 async function turnOn() {
   await setPower(true);
+  await sleep(1500);
+  await enableDreamView();
   return confirm((s) => s.power === 'on');
 }
 
