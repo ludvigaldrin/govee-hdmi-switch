@@ -1,22 +1,22 @@
 # govee-hdmi-switch
 
-Ett litet HTTP-API för att växla HDMI-källa på en **Govee AI Sync Box** (H6604 m.fl.).
-Tänkt att köras på en Raspberry Pi så att `curl http://pi:8088/ps5` byter till PS5 —
-användbart från Home Assistant, Homey, iOS-genvägar, en Stream Deck eller en knapp på väggen.
+A tiny HTTP API for switching the HDMI source on a **Govee AI Sync Box** (H6604 and similar).
+Meant to run on a Raspberry Pi so that `curl http://pi:8088/ps5` switches to the PS5 — handy
+from Home Assistant, Homey, iOS Shortcuts, a Stream Deck, or a button on the wall.
 
-Noll npm-beroenden. Bara Node 18 eller senare.
+Zero npm dependencies. Node 18 or later is all you need.
 
 ```sh
 curl http://raspberrypi.local:8088/apple
 # { "online": true, "power": "on", "hdmi": 1, "source": "apple", "confirmed": true }
 ```
 
-## Kom igång
+## Getting started
 
-**1. Skaffa en API-nyckel.** I Govee-appen: *Profil → Om oss → Apply for API Key*.
-Nyckeln mejlas till dig inom någon minut.
+**1. Get an API key.** In the Govee app: *Profile → About Us → Apply for API Key*.
+The key arrives by email within a minute or so.
 
-**2. Installera.**
+**2. Install.**
 
 ```sh
 git clone https://github.com/ludvigaldrin/govee-hdmi-switch.git
@@ -24,21 +24,22 @@ cd govee-hdmi-switch
 cp .env.template .env
 ```
 
-Lägg in nyckeln i `.env` (`GOVEE_API_KEY=...`) och spara.
+Put the key in `.env` (`GOVEE_API_KEY=...`) and save.
 
-**3. Hitta din enhet.**
+**3. Find your device.**
 
 ```sh
 npm run devices
 ```
 
-Den listar alla enheter på kontot och föreslår färdig config för dem som har HDMI-ingångar:
+This lists every device on the account and suggests ready-made config for the ones that
+have HDMI inputs:
 
 ```json
 {
   "devices": [
-    { "name": "Vardagsrum", "sku": "H6076", "device": "XX:XX:...", "type": "light", "hdmiSource": null },
-    { "name": "Sync Box",   "sku": "H6604", "device": "YY:YY:...", "type": "light",
+    { "name": "Living room", "sku": "H6076", "device": "XX:XX:...", "type": "light", "hdmiSource": null },
+    { "name": "Sync Box",    "sku": "H6604", "device": "YY:YY:...", "type": "light",
       "hdmiSource": ["HDMI 1 = 1", "HDMI 2 = 2", "HDMI 3 = 3", "HDMI 4 = 4"] }
   ],
   "config": [
@@ -47,10 +48,10 @@ Den listar alla enheter på kontot och föreslår färdig config för dem som ha
 }
 ```
 
-Klistra in raderna under `config` i din `.env`. Justera `SOURCE_ALIASES` så den matchar
-vad du faktiskt har inkopplat — formatet är `namn:port`, och varje namn blir en route.
+Paste the lines under `config` into your `.env`. Adjust `SOURCE_ALIASES` to match what you
+actually have plugged in — the format is `name:port`, and every name becomes a route.
 
-**4. Kör.**
+**4. Run it.**
 
 ```sh
 set -a; . ./.env; set +a
@@ -59,48 +60,48 @@ npm start
 
 ## Routes
 
-| Route | Gör |
+| Route | Does |
 |---|---|
-| `GET /` | listar tillgängliga routes och konfigurerad enhet |
-| `GET /devices` | alla enheter på kontot + förslag på config |
-| `GET /status` | nuvarande läge, ändrar inget (snabb) |
-| `GET /<alias>` | väljer den ingången, t.ex. `/apple` eller `/ps5` |
-| `GET /hdmi1` … `/hdmi4` | samma sak utan alias, finns alltid |
-| `GET /on` | slår på, behåller nuvarande källa |
-| `GET /off` | stänger av |
+| `GET /` | lists available routes and the configured device |
+| `GET /devices` | every device on the account, plus suggested config |
+| `GET /status` | current state, changes nothing (fast) |
+| `GET /<alias>` | selects that input, e.g. `/apple` or `/ps5` |
+| `GET /hdmi1` … `/hdmi4` | the same without aliases, always available |
+| `GET /on` | powers on, keeping the current source |
+| `GET /off` | powers off |
 
-Alla styrande routes svarar med enhetens läge efter kommandot:
+Every controlling route responds with the device state after the command:
 
 ```json
 { "online": true, "power": "on", "hdmi": 2, "source": "ps5", "confirmed": true }
 ```
 
-`confirmed: false` betyder att Govee kvitterade kommandot men att boxen inte hann
-rapportera det nya läget inom ~6 s. Det har oftast gått fram ändå — läs om med `/status`.
+`confirmed: false` means Govee acknowledged the command but the box did not report the new
+state within ~6 s. It has usually gone through anyway — re-read it with `/status`.
 
-Källbyte slår på boxen först om den är avstängd, eftersom den inte tar emot
-källbyten i avstängt läge.
+Switching source powers the box on first if it is off, since it ignores source changes
+while powered down.
 
-## Konfiguration
+## Configuration
 
-Allt sätts via miljövariabler, se [`.env.template`](.env.template).
+Everything is set through environment variables, see [`.env.template`](.env.template).
 
-| Variabel | Krävs | Beskrivning |
+| Variable | Required | Description |
 |---|---|---|
-| `GOVEE_API_KEY` | ja | Nyckeln från Govee-appen |
-| `GOVEE_SKU` | för styrning | Modellnummer, t.ex. `H6604`. Från `npm run devices` |
-| `GOVEE_DEVICE` | för styrning | Enhetens ID. Från `npm run devices` |
-| `SOURCE_ALIASES` | nej | `apple:1,ps5:2` → routes `/apple` och `/ps5` |
-| `PORT` | nej | Standard `8088` |
-| `AUTH_TOKEN` | nej | Om satt krävs `?token=...` eller `Authorization: Bearer ...` |
+| `GOVEE_API_KEY` | yes | The key from the Govee app |
+| `GOVEE_SKU` | to control | Model number, e.g. `H6604`. From `npm run devices` |
+| `GOVEE_DEVICE` | to control | Device ID. From `npm run devices` |
+| `SOURCE_ALIASES` | no | `apple:1,ps5:2` → routes `/apple` and `/ps5` |
+| `PORT` | no | Defaults to `8088` |
+| `AUTH_TOKEN` | no | If set, requests need `?token=...` or `Authorization: Bearer ...` |
 
-Servern startar även utan `GOVEE_SKU`/`GOVEE_DEVICE` så att `/devices` går att anropa;
-styrande routes svarar då `503` med en förklaring.
+The server starts without `GOVEE_SKU`/`GOVEE_DEVICE` so that `/devices` is reachable;
+controlling routes then answer `503` with an explanation.
 
-## Köra som tjänst på en Raspberry Pi
+## Running as a service on a Raspberry Pi
 
-Kontrollera att Node är v18+ (`node -v`); annars installera via
-[NodeSource](https://github.com/nodesource/distributions), Raspbians paket är ofta äldre.
+Check that Node is v18 or newer (`node -v`); if not, install it from
+[NodeSource](https://github.com/nodesource/distributions), as Raspbian's package is often older.
 
 ```sh
 git clone https://github.com/ludvigaldrin/govee-hdmi-switch.git /home/pi/govee-hdmi-switch
@@ -112,38 +113,37 @@ sudo systemctl enable --now govee-hdmi-switch
 systemctl status govee-hdmi-switch
 ```
 
-Loggar: `journalctl -u govee-hdmi-switch -f`
+Logs: `journalctl -u govee-hdmi-switch -f`
 
-Unit-filen antar användaren `pi` och sökvägen `/home/pi/govee-hdmi-switch` — justera vid behov.
+The unit file assumes the user `pi` and the path `/home/pi/govee-hdmi-switch` — adjust as needed.
 
-## Hur det fungerar, och begränsningar
+## How it works, and what it cannot do
 
-Servern pratar med [Govees moln-API](https://developer.govee.com/reference/control-you-devices)
-(`openapi.api.govee.com`), inte med boxen direkt. Det betyder att Pi:n behöver internet och
-att boxen måste vara online — men också att det fungerar oavsett nät och VLAN.
+The server talks to [Govee's cloud API](https://developer.govee.com/reference/control-you-devices)
+(`openapi.api.govee.com`), not to the box directly. That means the Pi needs internet access and
+the box has to be online — but it also means this works across any network or VLAN layout.
 
-Några saker som är värda att känna till:
+A few things worth knowing:
 
-- **State släpar ~2 sekunder efter ett kommando.** Servern pollar tills läget stämmer i stället
-  för att svara med gammal data, så ett källbyte tar 3–5 s att returnera. `/status` är direkt.
-- **Rate limits:** 720 kommandon/min per konto, 120/min per enhet, 30 state-anrop/min per enhet,
-  och ~10 000 anrop per dygn. Ett källbyte kostar 1–2 kommandon plus 1–4 state-anrop, så
-  gränserna märks inte vid normal användning — men undvik att polla `/status` oftare än
-  varannan sekund.
-- **`hdmiSource` går att läsa tillbaka**, till skillnad från t.ex. scener och musikläge som
-  Govee returnerar som tomma strängar. Därför kan servern rapportera verkligt läge och inte
-  bara vad den försökte sätta.
-- **Ingen push.** API:et är rent polling; det finns inget sätt att prenumerera på ändringar
-  som görs i Govee-appen eller på boxens knappar.
+- **State lags a command by about 2 seconds.** The server polls until the state matches rather
+  than replying with stale data, so a source switch takes 3–5 s to return. `/status` is immediate.
+- **Rate limits:** 720 commands/min per account, 120/min per device, 30 state calls/min per
+  device, and roughly 10,000 calls per day. A source switch costs 1–2 commands plus 1–4 state
+  calls, so the limits are invisible in normal use — but avoid polling `/status` more than
+  once every couple of seconds.
+- **`hdmiSource` can be read back**, unlike scenes and music mode, which Govee returns as empty
+  strings. That is why the server can report the real state instead of just what it tried to set.
+- **There is no push.** The API is polling only; there is no way to subscribe to changes made
+  in the Govee app or with the buttons on the box.
 
-## Säkerhet
+## Security
 
-`.env` är gitignorerad — checka aldrig in din API-nyckel eller dina enhets-ID:n.
-Nyckeln ger full kontroll över **alla** Govee-enheter på kontot, inte bara Sync Boxen.
+`.env` is gitignored — never commit your API key or device IDs. The key grants full control
+over **every** Govee device on the account, not just the Sync Box.
 
-Servern har ingen autentisering som standard, vilket är rimligt på ett betrott hemnät.
-Exponerar du den bredare: sätt `AUTH_TOKEN` och lägg den bakom en reverse proxy med TLS.
+The server has no authentication by default, which is reasonable on a trusted home network.
+If you expose it more widely, set `AUTH_TOKEN` and put it behind a reverse proxy with TLS.
 
-## Licens
+## License
 
 MIT

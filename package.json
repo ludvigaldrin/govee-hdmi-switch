@@ -1,7 +1,7 @@
 {
   "name": "govee-hdmi-switch",
   "version": "1.0.0",
-  "description": "Litet HTTP-API för att växla HDMI-källa på en Govee AI Sync Box",
+  "description": "Tiny HTTP API for switching the HDMI source on a Govee AI Sync Box",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

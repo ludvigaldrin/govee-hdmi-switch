@@ -1,6 +1,6 @@
-# Kopiera till /etc/systemd/system/ och justera User/paths om du inte kör som pi.
+# Copy to /etc/systemd/system/ and adjust User/paths if you are not running as pi.
 [Unit]
-Description=govee-hdmi-switch - HDMI-kallvaxlare for Govee AI Sync Box
+Description=govee-hdmi-switch - HDMI source switcher for Govee AI Sync Box
 After=network-online.target
 Wants=network-online.target
 
