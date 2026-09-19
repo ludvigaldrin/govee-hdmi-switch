@@ -73,8 +73,12 @@ npm start
 Every controlling route responds with the device state after the command:
 
 ```json
-{ "online": true, "power": "on", "hdmi": 2, "source": "ps5", "confirmed": true }
+{ "online": true, "power": "on", "hdmi": 2, "source": "ps5", "confirmed": true, "changed": true }
 ```
+
+`changed: false` means the box was already in the requested state and nothing was sent.
+Calling `/apple` twice is free the second time: it costs one state read, returns in about
+0.3 s, and does not disturb the picture.
 
 `confirmed: false` means Govee acknowledged the command but the box did not report the new
 state within ~6 s. It has usually gone through anyway — re-read it with `/status`.
@@ -83,6 +87,14 @@ Switching source powers the box on first if it is off, since it ignores source c
 while powered down. It then enables dreamView, so the strip is always syncing to the
 selected input rather than depending on whatever mode the box happened to resume in.
 `/on` does the same.
+
+Add `?force=1` to any controlling route to send the commands even when the state already
+looks right. Since dreamView cannot be read back, this is the way to re-assert it if you
+turned sync off in the Govee app:
+
+```sh
+curl 'http://raspberrypi.local:8088/apple?force=1'
+```
 
 ## Configuration
 

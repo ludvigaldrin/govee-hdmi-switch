@@ -124,28 +124,44 @@ async function confirm(matches) {
   return { ...state, confirmed: false };
 }
 
-async function selectSource(name) {
+async function selectSource(name, force = false) {
   const hdmi = SOURCES[name];
+  const before = await readState();
+
+  // Already showing this input: leave the box alone rather than re-sending the
+  // switch, which costs a couple of seconds and can make the picture blink.
+  if (!force && before.power === 'on' && before.hdmi === hdmi) {
+    return { ...before, changed: false };
+  }
+
   // The box ignores source changes while powered off, so switch it on and give it a moment.
-  if ((await readState()).power === 'off') {
+  if (before.power === 'off') {
     await setPower(true);
     await sleep(1500);
   }
   await setSource(hdmi);
   await enableDreamView();
-  return confirm((s) => s.power === 'on' && s.hdmi === hdmi);
+  return { ...(await confirm((s) => s.power === 'on' && s.hdmi === hdmi)), changed: true };
 }
 
-async function turnOff() {
+async function turnOff(force = false) {
+  if (!force) {
+    const before = await readState();
+    if (before.power === 'off') return { ...before, changed: false };
+  }
   await setPower(false);
-  return confirm((s) => s.power === 'off');
+  return { ...(await confirm((s) => s.power === 'off')), changed: true };
 }
 
-async function turnOn() {
+async function turnOn(force = false) {
+  if (!force) {
+    const before = await readState();
+    if (before.power === 'on') return { ...before, changed: false };
+  }
   await setPower(true);
   await sleep(1500);
   await enableDreamView();
-  return confirm((s) => s.power === 'on');
+  return { ...(await confirm((s) => s.power === 'on')), changed: true };
 }
 
 function send(res, status, body) {
@@ -176,12 +192,16 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    // ?force=1 re-sends the commands even when the state already looks right,
+    // which is the only way to re-assert dreamView since it cannot be read back.
+    const force = url.searchParams.has('force');
+
     if (route === '/status') return send(res, 200, await readState());
-    if (route === '/off') return send(res, 200, await turnOff());
-    if (route === '/on') return send(res, 200, await turnOn());
+    if (route === '/off') return send(res, 200, await turnOff(force));
+    if (route === '/on') return send(res, 200, await turnOn(force));
 
     const name = route.slice(1);
-    if (name in SOURCES) return send(res, 200, await selectSource(name));
+    if (name in SOURCES) return send(res, 200, await selectSource(name, force));
 
     return send(res, 404, { error: 'unknown route', routes: routes() });
   } catch (err) {
