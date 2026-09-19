@@ -98,24 +98,26 @@ Everything is set through environment variables, see [`.env.template`](.env.temp
 The server starts without `GOVEE_SKU`/`GOVEE_DEVICE` so that `/devices` is reachable;
 controlling routes then answer `503` with an explanation.
 
-## Running as a service on a Raspberry Pi
+## Running it as a service with pm2
 
-Check that Node is v18 or newer (`node -v`); if not, install it from
-[NodeSource](https://github.com/nodesource/distributions), as Raspbian's package is often older.
+`./start.sh` installs pm2 if it is missing and starts the server:
 
 ```sh
-git clone https://github.com/ludvigaldrin/govee-hdmi-switch.git /home/pi/govee-hdmi-switch
-cd /home/pi/govee-hdmi-switch
-cp .env.template .env && nano .env
-
-sudo cp govee-hdmi-switch.service /etc/systemd/system/
-sudo systemctl enable --now govee-hdmi-switch
-systemctl status govee-hdmi-switch
+./start.sh
 ```
 
-Logs: `journalctl -u govee-hdmi-switch -f`
+Useful commands afterwards:
 
-The unit file assumes the user `pi` and the path `/home/pi/govee-hdmi-switch` — adjust as needed.
+```sh
+pm2 logs govee-hdmi-switch      # follow logs
+pm2 restart govee-hdmi-switch   # after editing .env
+pm2 status
+```
+
+To start on boot, run `pm2 startup` once and follow the command it prints.
+
+pm2 does not read `.env` by itself, so `ecosystem.config.js` parses it and passes the
+values to the process. Restart with `--update-env` after changing `.env`.
 
 ## How it works, and what it cannot do
 
