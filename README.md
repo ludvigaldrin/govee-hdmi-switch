@@ -43,7 +43,7 @@ have HDMI inputs:
       "hdmiSource": ["HDMI 1 = 1", "HDMI 2 = 2", "HDMI 3 = 3", "HDMI 4 = 4"] }
   ],
   "config": [
-    { "name": "Sync Box", "env": ["GOVEE_SKU=H6604", "GOVEE_DEVICE=YY:YY:...", "SOURCE_ALIASES=apple:1,ps5:2"] }
+    { "name": "Sync Box", "env": ["GOVEE_SKU=H6604", "GOVEE_DEVICE=YY:YY:...", "SOURCE_ALIASES=apple:1,ps5:2,switch:3"] }
   ]
 }
 ```
@@ -65,7 +65,7 @@ npm start
 | `GET /` | lists available routes and the configured device |
 | `GET /devices` | every device on the account, plus suggested config |
 | `GET /status` | current state, changes nothing (fast) |
-| `GET /<alias>` | selects that input, e.g. `/apple` or `/ps5` |
+| `GET /<alias>` | selects that input, e.g. `/apple`, `/ps5` or `/switch` |
 | `GET /hdmi1` … `/hdmi4` | the same without aliases, always available |
 | `GET /on` | powers on, keeping the current source |
 | `GET /off` | powers off |
@@ -105,7 +105,7 @@ Everything is set through environment variables, see [`.env.template`](.env.temp
 | `GOVEE_API_KEY` | yes | The key from the Govee app |
 | `GOVEE_SKU` | to control | Model number, e.g. `H6604`. From `npm run devices` |
 | `GOVEE_DEVICE` | to control | Device ID. From `npm run devices` |
-| `SOURCE_ALIASES` | no | `apple:1,ps5:2` → routes `/apple` and `/ps5` |
+| `SOURCE_ALIASES` | no | `apple:1,ps5:2,switch:3` → routes `/apple`, `/ps5` and `/switch` |
 | `PORT` | no | Defaults to `8088` |
 | `AUTH_TOKEN` | no | If set, requests need `?token=...` or `Authorization: Bearer ...` |
 

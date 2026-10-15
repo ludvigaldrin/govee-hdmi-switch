@@ -72,7 +72,7 @@ async function listDevices() {
       : 'No devices with hdmiSource found. This server controls Sync Box models (e.g. H6604).',
     config: switchable.map((d) => ({
       name: d.name,
-      env: [`GOVEE_SKU=${d.sku}`, `GOVEE_DEVICE=${d.device}`, 'SOURCE_ALIASES=apple:1,ps5:2'],
+      env: [`GOVEE_SKU=${d.sku}`, `GOVEE_DEVICE=${d.device}`, 'SOURCE_ALIASES=apple:1,ps5:2,switch:3'],
     })),
   };
 }
